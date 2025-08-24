@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symbiotic Chess</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Symbiotic Chess</h1>
+    <div id="game-container">
+        <div id="board-container">
+            <div id="rank-labels"></div>
+            <div id="chessboard"></div>
+            <div id="file-labels"></div>
+        </div>
+        <div id="game-info">
+            <h2 id="turn-display">White's Turn</h2>
+            <div id="status-message"></div>
+            <div id="last-move"></div>
+            <div class="captured-pieces-container">
+                <h3>Captured by White</h3>
+                <div id="captured-by-white" class="captured-pieces"></div>
+            </div>
+            <div class="captured-pieces-container">
+                <h3>Captured by Black</h3>
+                <div id="captured-by-black" class="captured-pieces"></div>
+            </div>
+            <div id="controls">
+                <input type="text" id="move-input" placeholder="e.g., e2e4">
+                <button id="move-button">Move</button>
+                <button id="merge-button">Merge</button>
+                <button id="disintegrate-button">Disintegrate</button>
+                <button id="reset-button">Reset Game</button>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
