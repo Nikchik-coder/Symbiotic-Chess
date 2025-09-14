@@ -7,6 +7,15 @@ import os
 #     os.system('cls' if os.name == 'nt' else 'clear')
 
 # Represents a single chess piece
+
+SPECIAL_PIECE_INFO = {
+    'G': {'name': 'Grand Chancellor', 'moves': 'as a Rook, Knight, and Bishop'},
+    'M': {'name': 'Amazon', 'moves': 'as a Queen and a Knight'},
+    'A': {'name': 'Archbishop', 'moves': 'as a Bishop and a Knight'},
+    'C': {'name': 'Chancellor', 'moves': 'as a Rook and a Knight'},
+    'Q': {'name': 'Queen', 'moves': 'as a Rook and a Bishop'}
+}
+
 class Piece:
     def __init__(self, piece_type, color):
         self.piece_type = piece_type
@@ -72,6 +81,7 @@ class SymbioticChessGame:
         self.last_move = None
         self.captured_pieces = {'white': [], 'black': []}
         self.status_message = ""
+        self.last_merge_info = None
         init(autoreset=True)
 
     def setup_board(self):
@@ -307,6 +317,7 @@ class SymbioticChessGame:
                 self.status_message = "Invalid move."
 
     def move_piece(self, start_pos, end_pos):
+        self.last_merge_info = None
         piece_to_move = self.board[start_pos[0]][start_pos[1]]
         
         # Basic check for game over
@@ -395,9 +406,19 @@ class SymbioticChessGame:
                                             [piece2.piece_type] + piece2.combined_pieces)))
 
         piece1.combined_pieces = new_combined_list
+        
         # For simplicity, we keep the original piece type, but you could create new ones
         # e.g., if 'R' and 'N' merge, the piece_type could become 'C' (Chancellor)
-        
+        display_type, is_special_combo = piece1.get_display_info()
+        if is_special_combo:
+            info = SPECIAL_PIECE_INFO.get(display_type)
+            if info:
+                self.last_merge_info = f"Created a {info['name']}! It moves {info['moves']}."
+            else:
+                self.last_merge_info = None
+        else:
+            self.last_merge_info = None
+
         self.board[p2_row][p2_col] = None # Remove the second piece
         self.merge_count[self.current_turn] += 1
         
@@ -408,6 +429,7 @@ class SymbioticChessGame:
         self.switch_turn()
 
     def attempt_disintegrate(self, pos, target_pos):
+        self.last_merge_info = None
         pos_row, pos_col = pos
         piece = self.board[pos_row][pos_col]
 
@@ -431,11 +453,28 @@ class SymbioticChessGame:
         # The last piece added to the combined_pieces list is the one that's split off
         secondary_piece_type = piece.combined_pieces.pop(-1)
 
-        # The primary piece moves to the target square, keeping its other combined abilities
+        # If the primary piece's own type was in the combined list, it should remain
+        # The new combined list for the primary piece is everything minus the secondary piece type
+        new_combined_list = [p for p in piece.combined_pieces if p != secondary_piece_type]
+
+        # After splitting, if only one piece type is left in the list, it means it's no longer a combined piece
+        if len(new_combined_list) == 1:
+            piece.piece_type = new_combined_list[0]
+            piece.combined_pieces = []
+        elif len(new_combined_list) == 0: # This case handles splitting a piece with only two components
+            # The piece keeps its original type, and the combined list is now empty.
+            piece.combined_pieces = []
+        else:
+            # If there are still multiple pieces combined, we need to update the primary piece type
+            # A simple approach is to set it to the first type in the new list.
+            piece.piece_type = new_combined_list[0]
+            piece.combined_pieces = new_combined_list
+
+        # The primary piece moves to the target square
         self.board[target_pos[0]][target_pos[1]] = piece
         self.board[pos_row][pos_col] = Piece(secondary_piece_type, self.current_turn)
         
-        self.status_message = f"Disintegrated {primary_piece_type} and {secondary_piece_type}."
+        self.status_message = f"Disintegrated into {piece.piece_type} and {secondary_piece_type}."
         self.last_move = f"disintegrate {chr(97+pos_col)}{8-pos_row} {chr(97+target_pos[1])}{8-target_pos[0]}"
         self.switch_turn()
 

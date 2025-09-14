@@ -3,7 +3,16 @@ from flask_cors import CORS
 from game import SymbioticChessGame
 
 app = Flask(__name__)
-CORS(app)  # This will allow the frontend to make requests to this server
+# Allow requests from ngrok and localhost
+# CORS(app, resources={r"/*": {"origins": ["http://12.0.0.1:8000", "http://localhost:8000", "https://*.ngrok-free.app"]}})
+
+@app.after_request
+def after_request(response):
+    header = response.headers
+    header['Access-Control-Allow-Origin'] = '*'
+    header['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    header['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    return response
 
 game = SymbioticChessGame()
 
@@ -35,7 +44,8 @@ def get_state():
             'white': [piece_to_dict(p) for p in game.captured_pieces['white']],
             'black': [piece_to_dict(p) for p in game.captured_pieces['black']]
         },
-        'status_message': game.status_message
+        'status_message': game.status_message,
+        'last_merge_info': game.last_merge_info
     })
 
 @app.route('/move', methods=['POST'])
@@ -77,4 +87,4 @@ def reset():
     return jsonify({'status': 'ok'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False, host='0.0.0.0')

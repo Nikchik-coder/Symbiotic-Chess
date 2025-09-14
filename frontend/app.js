@@ -1,4 +1,7 @@
-const API_URL = 'http://127.0.0.1:5000';
+// Get API_URL from URL parameter or default to localhost
+const urlParams = new URLSearchParams(window.location.search);
+const API_URL = urlParams.get('api') || 'http://127.0.0.1:5000';
+
 let selectedSquares = [];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -171,6 +174,7 @@ function updateGameInfo(state) {
     document.getElementById('turn-display').innerText = `${state.current_turn.charAt(0).toUpperCase() + state.current_turn.slice(1)}'s Turn`;
     document.getElementById('status-message').innerText = state.status_message;
     document.getElementById('last-move').innerText = state.last_move ? `Last move: ${state.last_move}` : '';
+    document.getElementById('merge-info').innerText = state.last_merge_info || '';
     
     const whiteCaptured = document.getElementById('captured-by-white');
     whiteCaptured.innerHTML = state.captured_pieces.black.map(getPieceSymbol).join(' ');
